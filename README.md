@@ -9,10 +9,10 @@
 Kitap takibi yapmayı sağlayan flutter uygulaması
 
 Dependencies:
-  google_fonts: ^6.2.1
-  image_picker: ^0.8.6+3
-  flutter_rating_bar: ^4.0.1
-  sqflite: ^2.4.1
-  path: ^1.9.0
-  path_provider: ^2.0.15 
-  flutter_launcher_icons: ^0.13.1
+  google_fonts: ^6.2.1 <br />
+  image_picker: ^0.8.6+3 <br />
+  flutter_rating_bar: ^4.0.1 <br />
+  sqflite: ^2.4.1 <br />
+  path: ^1.9.0 <br />
+  path_provider: ^2.0.15 <br />
+  flutter_launcher_icons: ^0.13.1 <br />
