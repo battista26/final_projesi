@@ -1,52 +1,51 @@
+import 'package:final_projesi/library.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-//import 'package:firebase_auth/firebase_auth.dart';
-import 'library.dart';
+import 'database_helper.dart'; // Import the database helper
 
-TextEditingController emailController = TextEditingController();
+TextEditingController usernameController = TextEditingController();
 TextEditingController passwordController = TextEditingController();
-/*
-Future<void> loginUser(
-    String email, String password, BuildContext context) async {
-  try {
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Giriş Yapıldı')),
-    );
-    print('Giriş Yapıldı');
-    // Navigate to the next screen
-  } on FirebaseAuthException catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Giriş Yapılamadı: ${e.message}')),
-    );
-  }
-}
-
-Future<void> signUpUser(
-    String email, String password, BuildContext context) async {
-  try {
-    await FirebaseAuth.instance.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Kayıt Başarılı')),
-    );
-    print('Kayıt Başarılı');
-    // Navigate to the next screen
-  } on FirebaseAuthException catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Kayıt Başarısız: ${e.message}')),
-    );
-  }
-}
-*/
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
+
+  Future<void> loginUser(
+      String username, String password, BuildContext context) async {
+    final user = await DatabaseHelper().getUser(username);
+    if (user != null && user['password'] == password) {
+      // Successfully logged in
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Giriş Yapıldı')),
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => LibraryPage()),
+      );
+    } else {
+      // Invalid credentials
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content:
+                Text('Giriş Yapılamadı: Geçersiz kullanıcı adı veya şifre')),
+      );
+    }
+  }
+
+  Future<void> signUpUser(
+      String username, String password, BuildContext context) async {
+    final existingUser = await DatabaseHelper().getUser(username);
+    if (existingUser != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Bu kullanıcı adı zaten mevcut')),
+      );
+      return;
+    }
+
+    await DatabaseHelper().insertUser(username, password);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Kayıt Başarılı')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,9 +82,9 @@ class LoginPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             TextField(
-              controller: emailController, // Attach the email controller
+              controller: usernameController, // Attach the email controller
               decoration: const InputDecoration(
-                labelText: 'Email',
+                labelText: 'Kullanıcı Adı',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -101,14 +100,10 @@ class LoginPage extends StatelessWidget {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
-                // Get the email and password from the controllers
-                String email = emailController.text;
+                String username = usernameController.text;
                 String password = passwordController.text;
 
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => LibraryPage()),
-                );
+                loginUser(username, password, context);
               },
               child: Text(
                 'Giriş Yap',
@@ -121,9 +116,10 @@ class LoginPage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                // Get the email and password from the controllers
-                String email = emailController.text;
+                String username = usernameController.text;
                 String password = passwordController.text;
+
+                signUpUser(username, password, context);
               },
               child: Text(
                 'Kaydol',

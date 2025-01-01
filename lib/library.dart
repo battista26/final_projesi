@@ -1,3 +1,4 @@
+import 'package:final_projesi/database_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -21,6 +22,20 @@ class _LibraryPageState extends State<LibraryPage> {
 
   final ImagePicker _picker = ImagePicker();
 
+  @override
+  void initState() {
+    super.initState();
+    _loadBooks();
+  }
+
+  void _loadBooks() async {
+    final dbHelper = DatabaseHelper();
+    final dbBooks = await dbHelper.fetchBooks();
+    setState(() {
+      books = dbBooks;
+    });
+  }
+
   // Kapak resmi
   Future<void> kapakSec() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -31,7 +46,7 @@ class _LibraryPageState extends State<LibraryPage> {
     }
   }
 
-  void kitapEkle() {
+  void kitapEkle() async {
     if (coverImageFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please select a cover image')),
@@ -45,8 +60,10 @@ class _LibraryPageState extends State<LibraryPage> {
       title: titleController.text,
       author: authorController.text,
       cover: coverImageFile!.path,
-      summary: summaryController.text, // Add summary
+      summary: summaryController.text,
     );
+
+    await DatabaseHelper().insertBook(newBook);
 
     setState(() {
       books.add(newBook);
@@ -59,16 +76,17 @@ class _LibraryPageState extends State<LibraryPage> {
     Navigator.pop(context); // Close the dialog
   }
 
-  void kitapDuzenle(String id) {
+  void kitapDuzenle(String id) async {
     final index = books.indexWhere((book) => book.id == id);
     if (index != -1) {
-      setState(() {
-        books[index].title = titleController.text;
-        books[index].author = authorController.text;
-        books[index].summary = summaryController.text; // Update summary
-        books[index].cover = coverImageFile?.path ?? books[index].cover;
-      });
+      books[index].title = titleController.text;
+      books[index].author = authorController.text;
+      books[index].summary = summaryController.text;
+      books[index].cover = coverImageFile?.path ?? books[index].cover;
 
+      await DatabaseHelper().updateBook(books[index]);
+
+      setState(() {});
       titleController.clear();
       authorController.clear();
       summaryController.clear();
@@ -77,7 +95,8 @@ class _LibraryPageState extends State<LibraryPage> {
     }
   }
 
-  void kitapSil(String id) {
+  void kitapSil(String id) async {
+    await DatabaseHelper().deleteBook(id);
     setState(() {
       books.removeWhere((book) => book.id == id);
     });
